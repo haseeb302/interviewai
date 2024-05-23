@@ -1,0 +1,89 @@
+import OpenAI from "openai";
+import { NextRequest, NextResponse } from "next/server";
+import { ratelimit } from "@/lib/limit";
+
+// IMPORTANT! Set the runtime to edge
+export const runtime = "edge";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPEN_AI_KEY,
+});
+const agentId: string = process.env.AGENT_ID || "";
+
+// Define the POST handler for the file upload
+export const POST = async (req: NextRequest) => {
+  const ip = req.ip ?? "127.0.0.1";
+  const { success, limit, reset, remaining } = await ratelimit.limit(ip);
+
+  if (!success) {
+    return NextResponse.json(
+      {
+        error: {
+          message: "Rate limit reached",
+          limit,
+          reset,
+          remaining,
+        },
+      },
+      { status: 429 }
+    );
+  }
+  // Parse the incoming form data
+  const data = await req.formData();
+
+  const cv = data.get("file") as File;
+  if (!cv) {
+    // If no file is received, return a JSON response with an error and a 400 status code
+    return NextResponse.json(
+      { response: null, message: "No CV received." },
+      { status: 400 }
+    );
+  }
+  const file = await openai.files.create({
+    file: cv,
+    purpose: "assistants",
+  });
+  const thread = await openai.beta.threads.create({
+    messages: [
+      {
+        role: "user",
+        content: `Hi the job title is ${data.get(
+          "job_title"
+        )} and the job description is as follows: 
+        ${data.get("job_description")}
+        The company description is ${data.get("company_description")}
+        I have also attached my CV. Please provide a valid JSON response.
+        `,
+        attachments: [
+          {
+            file_id: file.id,
+            tools: [{ type: "file_search" }],
+          },
+        ],
+      },
+    ],
+  });
+
+  const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+    assistant_id: agentId,
+  });
+
+  const messages: any = await openai.beta.threads.messages.list(thread.id);
+  let result = messages?.data[0]?.content[0]?.text?.value;
+  result = result.replace(/```json\n?|```/g, "");
+  result = result.replace(/\\(?!["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
+  result = JSON.parse(result);
+  console.log(result);
+
+  if (run.status === "completed") {
+    return NextResponse.json(
+      { response: result, message: "success" },
+      { status: 200 }
+    );
+  } else {
+    return NextResponse.json(
+      { response: null, message: "failed" },
+      { status: 500 }
+    );
+  }
+};
