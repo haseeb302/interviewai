@@ -42,6 +42,7 @@ type Questions = {
   interview_questions: InterviewQuestions[];
   additional_questions: string[];
   tips: string[];
+  score: number | string;
 };
 
 const MAX_FILE_SIZE = 500000; // 5MB
@@ -74,7 +75,7 @@ const formSchema = z.object({
 });
 
 export default function Home() {
-  const [questions, setQuestions] = useState<Questions | undefined>(undefined);
+  const [questions, setQuestions] = useState<Questions | undefined>([1]);
   const [cv, setCV] = useState<File>();
   const [loader, setLoader] = useState<boolean>(false);
   const [error, setError] = useState<ErrorType>();
@@ -211,6 +212,10 @@ export default function Home() {
       <div className="h-screen w-full border-l px-5 overflow-scroll py-8 space-y-5">
         {questions !== undefined ? (
           <>
+            <div className="flex items-center">
+              <h3 className="text-2xl font-bold underline mr-3">Best Match</h3>
+              <h4 className="text-xl">{questions?.score}/10</h4>
+            </div>
             <div className="flex items-center">
               <FileQuestion className="w-8 h-8 text-violet-500 mr-3" />
               <h3 className="text-2xl font-bold underline">Questions</h3>
