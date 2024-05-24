@@ -3,9 +3,6 @@ import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { ratelimit } from "@/lib/limit";
 
-// IMPORTANT! Set the runtime to edge
-export const runtime = "edge";
-
 const openai = new OpenAI({
   apiKey: process.env.OPEN_AI_KEY,
 });
@@ -74,7 +71,6 @@ export const POST = async (req: NextRequest) => {
   result = result.replace(/```json\n?|```/g, "");
   result = result.replace(/\\(?!["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, "\\\\");
   result = JSON.parse(result);
-  console.log(result);
 
   if (run.status === "completed") {
     return NextResponse.json(
