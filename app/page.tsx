@@ -24,6 +24,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import axios from "axios";
 import { Loader } from "@/components/loader";
+import { cn } from "@/lib/utils";
 
 type ErrorType = {
   message: string;
@@ -42,7 +43,7 @@ type Questions = {
   interview_questions: InterviewQuestions[];
   additional_questions: string[];
   tips: string[];
-  score: number | string;
+  score: number;
 };
 
 const MAX_FILE_SIZE = 500000; // 5MB
@@ -56,11 +57,14 @@ const formSchema = z.object({
   job_title: z.string().min(2, {
     message: "Job title must be at least 2 characters.",
   }),
-  job_description: z.string().min(2, {
-    message: "Job title must be at least 2 characters.",
+  interview_stage: z.string().min(2, {
+    message: "Interview stage is required",
   }),
-  company_description: z.string().min(2, {
-    message: "Job title must be at least 2 characters.",
+  job_description: z.string().min(10, {
+    message: "Job description is required with minimum 10 characters",
+  }),
+  company_description: z.string().min(10, {
+    message: "Company Description is required with minimum 10 characters",
   }),
   file: z.any({ required_error: "Please upload CV" }),
   // .refine((files) => files?.length === 1, "CV is required")
@@ -84,6 +88,7 @@ export default function Home() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       job_title: "",
+      interview_stage: "",
       job_description: "",
       company_description: "",
     },
@@ -114,8 +119,7 @@ export default function Home() {
       if (e?.response?.status === 429) {
         setError({
           status: 429,
-          message:
-            "You have used available requests for today. Try again tomorrow.",
+          message: "You have reached limit for today. Try again tomorrow.",
         });
       }
       if (e === 403) {
@@ -144,6 +148,24 @@ export default function Home() {
                     type="text"
                     placeholder="Enter job title"
                     id="title"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="interview_stage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Interview Stage</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="2nd Stage Interview OR Technical Assessment"
                     {...field}
                   />
                 </FormControl>
@@ -214,7 +236,14 @@ export default function Home() {
           <>
             <div className="flex items-center">
               <h3 className="text-2xl font-bold underline mr-3">Best Match</h3>
-              <h4 className="text-xl">{questions?.score}/10</h4>
+              <h4
+                className={cn(
+                  "text-xl",
+                  questions?.score > 6 ? "text-green-500" : "text-red-500"
+                )}
+              >
+                {questions?.score}/10
+              </h4>
             </div>
             <div className="flex items-center">
               <FileQuestion className="w-8 h-8 text-violet-500 mr-3" />

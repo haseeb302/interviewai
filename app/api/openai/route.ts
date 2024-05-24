@@ -45,12 +45,15 @@ export const POST = async (req: NextRequest) => {
     messages: [
       {
         role: "user",
-        content: `Hi the job title is ${data.get(
-          "job_title"
-        )} and the job description is as follows: 
+        content: `Job Title: ${data.get("job_title")}
+        Job description: 
         ${data.get("job_description")}
-        The company description is ${data.get("company_description")}
-        I have also attached my CV. Please provide a valid JSON response.
+        Company Description:
+        ${data.get("company_description")}
+        Interview Stage:
+        ${data.get("interview_stage")}
+        CV is attached. 
+        Please provide a valid JSON response.
         `,
         attachments: [
           {
