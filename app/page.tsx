@@ -75,7 +75,7 @@ const formSchema = z.object({
 });
 
 export default function Home() {
-  const [questions, setQuestions] = useState<Questions | undefined>([1]);
+  const [questions, setQuestions] = useState<Questions | undefined>(undefined);
   const [cv, setCV] = useState<File>();
   const [loader, setLoader] = useState<boolean>(false);
   const [error, setError] = useState<ErrorType>();
