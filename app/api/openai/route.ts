@@ -1,3 +1,4 @@
+export const maxDuration = 60;
 import OpenAI from "openai";
 import { NextRequest, NextResponse } from "next/server";
 import { ratelimit } from "@/lib/limit";
