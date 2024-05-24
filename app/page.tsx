@@ -23,7 +23,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import axios from "axios";
-import q from "./data.json";
 import { Loader } from "@/components/loader";
 
 type ErrorType = {
